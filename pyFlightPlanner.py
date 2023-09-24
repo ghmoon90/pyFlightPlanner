@@ -22,6 +22,11 @@ def save_json_mission(szfile,wpt_list):
     with open(szfile,"w") as json_file:
         json.dump(wpt_list,json_file)
     
+'''
+    change significant digit from basic 4 to designated values
+    Folium basically set as 4 in javascript
+    This code reedit the html itself, change digit from 4 to designated values
+'''
 
 # significant digit change
 def change_digits(output_name,sdigit):
@@ -35,21 +40,62 @@ def change_digits(output_name,sdigit):
         outff.writelines(temp)
 
     return True
+    
+    
+'''
+Calculate distance using the Haversine Formula
+'''
+
+def haversine(coord1, coord2):
+    import math
+
+    # Coordinates in decimal degrees (e.g. 2.89078, 12.79797)
+    lat1, lon1 = coord1
+    lat2, lon2 = coord2
+
+    R = 6371000.0  # radius of Earth in meters
+    phi_1 = math.radians(lat1)
+    phi_2 = math.radians(lat2)
+
+    delta_phi = math.radians(lat2 - lat1)
+    delta_lambda = math.radians(lon2 - lon1)
+
+    a = math.sin(delta_phi / 2.0) ** 2 + math.cos(phi_1) * math.cos(phi_2) * math.sin(delta_lambda / 2.0) ** 2
+    
+    c = 2 * math.atan2(math.sqrt(a), math.sqrt(1 - a))
+
+    meters = R * c  # output distance in meters
+    
+    return meters
+    
+
  
 def mark_mission(wpt_list):
 
     global mapobj
     
     loc_data = []
+    Interv_Dist = []
+    tooltipstr =[]
     id_wpt = 0
     for wpt in wpt_list:
         id_wpt = id_wpt + 1 
         folium.Marker(location = [wpt['lat'] , wpt['lon']], \
             popup = f"WPTID:{wpt['wpt_id']} \n Lat:{wpt['lat']:.6f} \n Lon:{wpt['lon']:.6f}").add_to(mapobj)
         loc_data.append([wpt['lat'], wpt['lon']])
-            
-            
-    folium.PolyLine(locations=loc_data).add_to(mapobj)
+    
+    for id in range(1,len(wpt_list)):
+        wpt1 =  wpt_list[id-1]
+        wpt2 =  wpt_list[id]
+        coord1 = [wpt1['lat'] , wpt1['lon']]
+        coord2 = [wpt2['lat'] , wpt2['lon']]
+        Interv_Dist.append(haversine(coord1, coord2))
+        print(f"distance between wpt {wpt1['wpt_id']} and wpt {wpt2['wpt_id']} : {Interv_Dist[id-1]:.2f}\n")
+        
+        tooltipstr.append(f"distance between wpt {wpt1['wpt_id']} and wpt {wpt2['wpt_id']} : {Interv_Dist[id-1]:.2f}\n")
+                   
+    folium.PolyLine(locations=loc_data,tooltip = tooltipstr).add_to(mapobj)
+    
         
 
 
