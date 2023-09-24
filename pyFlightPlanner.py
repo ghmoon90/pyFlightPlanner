@@ -76,7 +76,7 @@ def mark_mission(wpt_list):
     
     loc_data = []
     Interv_Dist = []
-    tooltipstr =[]
+    tooltipstr =''
     id_wpt = 0
     for wpt in wpt_list:
         id_wpt = id_wpt + 1 
@@ -92,7 +92,7 @@ def mark_mission(wpt_list):
         Interv_Dist.append(haversine(coord1, coord2))
         print(f"distance between wpt {wpt1['wpt_id']} and wpt {wpt2['wpt_id']} : {Interv_Dist[id-1]:.2f}\n")
         
-        tooltipstr.append(f"distance between wpt {wpt1['wpt_id']} and wpt {wpt2['wpt_id']} : {Interv_Dist[id-1]:.2f}\n")
+        tooltipstr = tooltipstr + (f"<br>distance between wpt {wpt1['wpt_id']} and wpt {wpt2['wpt_id']} : {Interv_Dist[id-1]:.2f}</br>")
                    
     folium.PolyLine(locations=loc_data,tooltip = tooltipstr).add_to(mapobj)
     
@@ -122,9 +122,12 @@ if __name__ =='__main__':
     tiles = "http://mt0.google.com/vt/lyrs=s&hl=ko&x={x}&y={y}&z={z}"
     # 속성 설정
     attr = "Google"
+    
+    file_name = 'output.html'
 
     if len(sys.argv) >= 2 :
         wpt_list = open_json_mission(sys.argv[1])
+        file_name = sys.argv[1].replace('json','html')
         lat,lon = cg_mission(wpt_list)
 
     # 지도 객체 생성
@@ -139,7 +142,8 @@ if __name__ =='__main__':
         
         mark_mission(wpt_list)
         
-    output_name = 'map.html'
+        
+    output_name = './output/'+file_name
     mapobj.add_child(folium.ClickForMarker( "<b>Lat:</b> ${lat}<br /><b>Lon:</b> ${lng}"))
     mapobj.add_child(folium.features.ClickForLatLng(format_str='lat+","+lng' , alert= True))
     mapobj.save(output_name)
